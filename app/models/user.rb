@@ -10,8 +10,11 @@ class User < ApplicationRecord
   validates :email, presence: true, length: { maximum: 100 },
                     format: { with: VALID_EMAIL_REGEX },
                     uniqueness: true
+  # 所属の長さが2文字以上かつ50文字以下の検証を追加
   validates :department, length: { in: 2..50 }, allow_blank: true
+  # 基本時間が必ず存在させるために検証を追加
   validates :basic_time, presence: true
+  # 勤務時間が必ず存在させるために検証を追加
   validates :work_time, presence: true
   has_secure_password
   validates :password, presence: true, length: { minimum: 6 }, allow_nil: true

@@ -37,7 +37,7 @@ h1 {
 }
 
 h2 {
-  font-size: 1.2em;
+  font-size: 1.6em;
   letter-spacing: -1px;
   margin-bottom: 30px;
   text-align: center;
@@ -66,6 +66,14 @@ p {
 #logo:hover {
   color: #fff;
   text-decoration: none;
+}
+
+li .header-list {
+  color: #fff !important;
+  font-weight: bold;
+  &:hover {
+   color: silver !important;
+  }
 }
 
 /* debug */
