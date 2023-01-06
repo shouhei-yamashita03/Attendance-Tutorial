@@ -2,9 +2,10 @@ class UsersController < ApplicationController
   before_action :set_user, only: [:show, :edit, :update, :destroy, :edit_basic_info, :update_basic_info]
   before_action :logged_in_user, only: [:index, :edit, :update, :destroy, :edit_basic_info, :update_basic_info]
   before_action :correct_user, only: [:edit, :update]
-  before_action :admin_user, only: [:index, :destroy, :edit_basic_info, :update_basic_info]
-  before_action :set_one_month, only: :show
-  before_action :admin_or_correct_user, only: :show
+  before_action :admin_user, only: [:destroy, :edit_basic_info, :update_basic_info]
+  before_action :set_one_month, only: [:show]
+  before_action :admin_or_correct_user, only: [:show]
+  
   def index
     @users = User.paginate(page: params[:page])
     @users = @users.where('name like ?', "%#{params[:search]}%") if params[:search].present?
@@ -62,14 +63,14 @@ class UsersController < ApplicationController
   private
 
     def user_params
-      params.require(:user).permit(:name, :email, :department, :password, :password_confirmation)
+      params.require(:user).permit(:name, :email, :affiliation, :password, :password_confirmation)
     end
 
     def basic_info_params
-      params.require(:user).permit(:department, :basic_time, :work_time)
+      params.require(:user).permit(:affiliation, :basic_time, :work_time)
     end
     
-     # 管理権限者、または現在ログインしているユーザーを許可します。
+    # 管理権限者、または現在ログインしているユーザーを許可します。
     def admin_or_correct_user
       @user = User.find(params[:user_id]) if @user.blank?
       unless current_user?(@user) || current_user.admin?

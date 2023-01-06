@@ -11,11 +11,19 @@ class User < ApplicationRecord
                     format: { with: VALID_EMAIL_REGEX },
                     uniqueness: true
   # 所属の長さが2文字以上かつ50文字以下の検証を追加
-  validates :department, length: { in: 2..50 }, allow_blank: true
-  # 基本時間が必ず存在させるために検証を追加
-  validates :basic_time, presence: true
+  validates :affiliation, length: { in: 2..50 }, allow_blank: true
+  # 社員番号が必ず存在させるために検証を追加
+  validates :employee_number, presence: true, uniqueness: true
+  # ユーザーIDが必ず存在させるために検証を追加
+  validates :uid, presence: true, uniqueness: true
+  # 基本勤務時間が必ず存在させるために検証を追加
+  validates :basic_work_time, presence: true
   # 勤務時間が必ず存在させるために検証を追加
   validates :work_time, presence: true
+  # 指定勤務開始時間が必ず存在させるために検証を追加
+  validates :designated_work_start_time, presence: true
+  # 指定勤務終了時間が必ず存在させるために検証を追加
+  validates :designated_work_end_time, presence: true
   has_secure_password
   validates :password, presence: true, length: { minimum: 6 }, allow_nil: true
 
