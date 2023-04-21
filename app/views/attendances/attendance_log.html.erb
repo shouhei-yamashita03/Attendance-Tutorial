@@ -1,0 +1,45 @@
+<% provide(:title, "勤怠ログ") %>
+
+<div class="container">
+    <h1>勤怠修正ログ</h1>
+        <%= form_with(url: attendance_log_user_attendance_path, local: true, method: :get) do |f| %>
+            <div class="pull-left">
+                <!--f.submit "リセット"を使用する場合、type::resetを付ける-->
+                <%= f.submit "リセット", type: :reset %><br>
+                <%= f.label "年" %>
+                <%= select_year(Date.today, start_year: Date.today.year, end_year: Date.today.year + 10, prompt: '') %>
+                <%= f.label "月" %>
+                <%= select_month(Date.today, prompt: '') %><br>
+                <%= f.submit "　検索　" %>
+            </div>
+        <% end %>
+        
+        <table class="table table-bordered table-condensed table-hover" id="table-attendances">
+            <thead>
+              <tr>
+                <th>日付</th>
+                <th>変更前出社時間</th>
+                <th>変更前退社時間</th>
+                <th>変更後出社時間</th>
+                <th>変更後退社時間</th>
+                <th>指示者</th>
+                <th>承認日</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% if @first_day.present? %>
+                <% @attendances.each do |day| %>
+                  <tr>
+                    <td><%= day.worked_on.strftime("%Y年%m月%d日(#{$days_of_the_week[day.worked_on.wday]})") %></td>
+                    <td><%= l(day.begin_started, format: :time) if day.begin_started.present? %></td>
+                    <td><%= l(day.begin_finished, format: :time) if day.begin_finished.present? %></td>
+                    <td><%= l(day.started_at, format: :time) if day.started_at.present? %></td>
+                    <td><%= l(day.finished_at, format: :time) if day.finished_at.present? %></td>
+                    <td><%= day.attendances_request_superior %></td>
+                    <td><%= day.updated_at.strftime("%Y年%m月%d日") %></td>
+                  </tr>
+                <% end %>
+              <% end %>
+            </tbody>
+        </table>
+</div>

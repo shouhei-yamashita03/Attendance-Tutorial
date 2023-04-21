@@ -6,12 +6,26 @@ class ApplicationController < ActionController::Base
 
   # beforフィルター
 
-  # paramsハッシュからユーザーを取得します。
+  # paramsハッシュからユーザーを取得
+  # 重複している部分をメソッド化
+  # (params[:id])と(params[:user_id])の違いはパラメーターの違い(Routesを確認すれば分かる)
   def set_user
     @user = User.find(params[:id])
   end
-
-  # ログイン済みのユーザーか確認します。
+  
+  def set_user_id
+    @user = User.find(params[:user_id])
+  end
+  
+  def set_attendance
+    @attendance = Attendance.find(params[:id])
+  end
+  
+  def set_superior 
+    @superiors = User.where(superior: true).where.not(id: @user.id)
+  end
+  
+  # store_location ユーザがサイイン後、特定のパスにリダイレクトさせるために使用
   def logged_in_user
     unless logged_in?
       store_location
@@ -20,14 +34,39 @@ class ApplicationController < ActionController::Base
     end
   end
 
-  # アクセスしたユーザーが現在ログインしているユーザーか確認します。
+  # アクセスしたユーザーが現在ログインしているユーザーか確認
+  # correct_userログインしているユーザーが他のユーザーのプロフィールや情報を編集しようとした場合にリダイレクトさせるために使用
+  # current_user 現在ログインしているユーザを取得するために使用
   def correct_user
-    redirect_to(root_url) unless current_user?(@user)
+    unless current_user?(@user)
+      flash[:danger] = "他のユーザー情報は閲覧できません。"
+      redirect_to(root_url)
+    end
   end
 
-  # システム管理権限所有かどうか判定します。
+  # システム管理権限者かどうか判定
   def admin_user
-    redirect_to root_url unless current_user.admin?
+    unless current_user.admin?
+      flash[:danger] = "管理者のみ閲覧可能"
+      redirect_to root_url
+    end
+  end
+  
+  # 管理権限者、または現在ログインしているユーザーを許可
+  def admin_or_correct_user
+    @user = User.find(params[:user_id]) if @user.blank?
+    unless current_user?(@user) || current_user.admin?
+      flash[:danger] = "編集権限がありません。"
+      redirect_to(root_url)
+    end  
+  end
+  
+  # 管理者はアクセスできない。
+  def not_admin
+    if current_user.admin?
+      flash[:danger] = "アクセス権限がありません。"
+      redirect_to root_url
+    end
   end
 
   # ページ出力前に1ヶ月分のデータの存在を確認・セットします。

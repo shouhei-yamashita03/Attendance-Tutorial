@@ -1,0 +1,142 @@
+<% provide(:title, @user.name) %>
+<div>
+  <table class="table table-bordered table-condensed user-table" id="table-attendances">
+    <tr>
+      <td>
+        <%= l(@first_day, format: :middle) %> 時間管理表
+      </td>
+      <td>
+        指定勤務開始時間：<%= format_basic_info(@user.designated_work_start_time) %><br>
+        指定勤務終了時間：<%= format_basic_info(@user.designated_work_end_time) %>
+      </td>
+      <td colspan="3">基本時間：<%= format_basic_info(@user.basic_work_time) %></td>
+      <td>初日：<%= l(@first_day, format: :short) %></td>
+    </tr>
+
+    <tr>
+      <td>所属：<%= @user.affiliation.present? ? @user.affiliation : "未所属" %></td>
+      <td>氏名：<%= @user.name %></td>
+      <td>コード</td>
+      <td><%= @user.uid %></td>
+      <td>出勤日数：<%= @worked_sum %>日</td>
+      <td>締め：<%= l(@last_day, format: :short) %></td>
+    </tr>
+  </table>
+</div>
+
+
+<div>
+  <table class="table table-bordered table-condensed table-striped table-hover" id="table-attendances">
+    <thead>
+      <!--rowspan:縦結合、colspan：横結合-->
+      <tr>
+        <th rowspan="3">残業申請</th>
+        <th rowspan="3">日付</th>
+        <th rowspan="3">曜日</th>
+        <th rowspan="3">出社・退社登録</th>
+        <th colspan="6">【実績】</th>
+        <th colspan="5">所定外勤務</th>
+      </tr>
+
+      <tr>
+        <th colspan="2">出社</th>
+        <th colspan="2">退社</th>
+        <th rowspan="2">在社時間</th>
+        <th rowspan="2">備考</th>
+        <th colspan="2">終了予定時間</th>
+        <th rowspan="2">時間外時間</th>
+        <th rowspan="2">業務処理内容</th>
+        <th rowspan="2">指示者確認㊞</th>
+      </tr>
+
+      <tr>
+        <th>時</th>
+        <th>分</th>
+        <th>時</th>
+        <th>分</th>
+        <th>時</th>
+        <th>分</th>
+      </tr>
+    </thead>
+  <tbody>
+  <% @attendances.each do |day| %>
+    <tr>
+      <!--残業申請のモーダル-->
+      <td></td>
+      <!--日付-->
+      <td><%= l(day.worked_on, format: :short) %></td>
+      <!--曜日-->
+      <td class = '<%= "wday#{day.worked_on.wday}" %>'><%= $days_of_the_week[day.worked_on.wday] %></td>
+      <!--出社・退社登録-->
+      <td>
+      </td>
+      <!--出社・退社-->
+      <td><%= l(day.started_at, format: :hour) if day.started_at.present? %></td>
+      <td><%= l(day.started_at, format: :min) if day.started_at.present? %></td>
+      <td><%= l(day.finished_at, format: :hour) if day.finished_at.present? %></td>
+      <td><%= l(day.finished_at, format: :min) if day.finished_at.present? %></td>
+      <!--在社時間-->
+      <td>
+      <% if day.started_at.present? && day.finished_at.present? %>
+        <%= str_times = working_times(day.started_at, day.finished_at, day.next_day) %>
+        <% @total_working_times = @total_working_times.to_f + str_times.to_f %>
+      <% end %>
+      </td>
+      <!--備考-->
+      <td><%= day.note %></td>
+      <!--終了予定時間-->
+      <td><%= l(day.scheduled_end_time, format: :hour) if day.scheduled_end_time.present? %></td>
+      <td><%= l(day.scheduled_end_time, format: :min) if day.scheduled_end_time.present? %></td>
+      <!--時間外時間-->
+      <td>
+        <% if day.scheduled_end_time.present? %>                             
+          <%= working_overtimes(@user.designated_work_end_time, day.scheduled_end_time, day.next_day) %>                                                    
+        <% end %>
+      </td>
+      <!--業務処理内容-->
+      <td><%= day.work_description if day.work_description.present? %></td>
+      <!--指示者確認㊞-->
+      <td>
+        <% if day.overtime_request_status == "申請中" %>
+          <%= "#{day.overtime_request_superior}へ残業#{day.overtime_request_status}" %><br>
+        <% elsif (day.overtime_request_status == "承認") || (day.overtime_request_status == "否認") %>
+          <%= "#{day.overtime_request_superior}より残業#{day.overtime_request_status}" %><br>
+        <% end %>
+        <% if day.attendances_approval_status == "申請中" %>
+          <%= "#{day.attendances_request_superior}へ勤怠変更#{day.attendances_approval_status}" %><br>
+        <% elsif (day.attendances_approval_status == "承認") || (day.attendances_approval_status == "否認") %>
+          <%= "#{day.attendances_request_superior}より勤怠#{day.attendances_approval_status}" %><br>
+        <% end %>
+      </td>
+    </tr>
+  <% end %>
+  </tbody>
+
+<tfoot>
+  <!--rowspan:縦結合、colspan：横結合-->
+  <tr>
+    <td></td>
+      <td>累計日数</td>
+      <td colspan="6">総合勤務時間</td>
+      <td colspan="1">累計在社時間</td>
+      <td rowspan="2"></td>
+      <td rowspan="2"></td>
+      <td rowspan="2"></td>
+      <td rowspan="2"></td>
+      <td rowspan="2"></td>
+      <td rowspan="2"></td>
+  </tr>
+  <tr>
+    <td></td>
+    <td><%= @attendances.count %></td>
+    <td colspan="6"><%= format_basic_info(@user.work_time).to_f * @worked_sum %></td>
+    <td colspan="1"><%= format("%.2f", @total_working_times.to_f) %></td>
+  </tr>
+</tfoot>   
+</table>
+</div>
+
+<!--モーダルウインドウ表示-->
+<div id="edit-overtime-request" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
+<div id="edit-overtime-notice" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
+<div id="edit-attendance-change-notice" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true"></div>
