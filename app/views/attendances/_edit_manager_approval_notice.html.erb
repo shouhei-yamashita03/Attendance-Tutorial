@@ -13,7 +13,7 @@
           <%= form_with(model: @user, url: update_manager_approval_notice_user_attendance_path(@user), local: true, method: :patch) do |f| %>
             <% @attendances.each do |id, attendances| %>
               <% user = User.find(id) %>
-              <h1 class="modal-title"><%= "【#{user.id}からの勤怠変更申請】" %></h1>
+              <h1 class="modal-title"><%= "【#{user.id}からの1ヶ月の勤怠変更申請】" %></h1>
                <table class="table table-bordered table-condensed table-hover" id="table-attendances">
                 <thead>
                   <tr>

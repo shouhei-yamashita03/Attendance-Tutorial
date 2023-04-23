@@ -22,11 +22,11 @@
             <td><%= l(day.worked_on, format: :short) %></td>
             <td class="<%= "wday#{day.worked_on.wday}" %>"><%= $days_of_the_week[day.worked_on.wday] %></td>
             <% if (Date.current < day.worked_on) %>
-              <td><%= attendance.time_field :started_at, readonly: true, class: "form-control" %></td>
-              <td><%= attendance.time_field :finished_at, readonly: true, class: "form-control" %></td>
+              <td><%= attendance.time_field :edit_started_at, readonly: true, class: "form-control" %></td>
+              <td><%= attendance.time_field :edit_finished_at, readonly: true, class: "form-control" %></td>
             <% else %>
-              <td><%= attendance.time_field :started_at, class: "form-control" %></td>
-              <td><%= attendance.time_field :finished_at, class: "form-control" %></td>
+              <td><%= attendance.time_field :edit_started_at, class: "form-control" %></td>
+              <td><%= attendance.time_field :edit_finished_at, class: "form-control" %></td>
             <% end %>
               <td><%= attendance.check_box :next_day, id: "next_day" %></td>
               <td>

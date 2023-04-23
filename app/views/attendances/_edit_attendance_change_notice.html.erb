@@ -55,10 +55,10 @@
                         <!--変更前・退勤-->
                         <td><%= day.finished_at.try(:strftime, "%H") %></td>
                         <td><%= day.finished_at.try(:strftime, "%M") %></td>
-                        <!--変更後・出勤-->
+                        <!--変更後・出社-->
                         <td><%= day.edit_started_at.try(:strftime, "%H") %></td>
                         <td><%= day.edit_started_at.try(:strftime, "%M") %></td>
-                        <!--変更後・退勤-->
+                        <!--変更後・退社-->
                         <td><%= day.edit_finished_at.try(:strftime, "%H") %></td>
                         <td><%= day.edit_finished_at.try(:strftime, "%M") %></td>
                         <td><%= day.note %></td>
