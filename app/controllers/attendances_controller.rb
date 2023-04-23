@@ -195,12 +195,10 @@ class AttendancesController < ApplicationController
   
   # 勤怠修正ログ
   def attendance_log
-    @first_day = params[:first_day] # フォームから送信されたデータを取得
-    if @first_day.present?
-      @attendances = Attendance.where(user_id: current_user.id, worked_on: @first_day.in_time_zone.all_month).order(:worked_on)
-    else
-      @attendances = []
-    end
+   if params["select_year(1i)"].present? && params["select_month(2i)"].present?
+      @first_day = (params["select_year(1i)"] + "-" + params["select_month(2i)"] + "-01").to_data
+      @attendances = @user.attendances.where(worked_on: @first_day..@first_day.end_of_month,attendances_approval_status: "承認").order(:worked_on)
+   end
   end
   
   private
