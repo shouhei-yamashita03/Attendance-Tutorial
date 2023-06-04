@@ -20,10 +20,6 @@ ActiveRecord::Schema.define(version: 20230418133728) do
     t.integer "user_id"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
-    t.string "one_month_approval_status"
-    t.boolean "one_month_approval_check", default: false
-    t.string "one_month_request_superior"
-    t.string "one_month_request_status"
     t.string "attendances_request_superior"
     t.string "attendances_approval_status"
     t.boolean "attendances_approval_check", default: false
@@ -62,13 +58,13 @@ ActiveRecord::Schema.define(version: 20230418133728) do
     t.string "password_digest"
     t.string "remember_digest"
     t.boolean "admin", default: false
-    t.datetime "basic_work_time", default: "2023-03-02 23:00:00"
-    t.datetime "work_time", default: "2023-03-02 22:30:00"
+    t.datetime "basic_work_time", default: "2023-05-31 23:00:00"
+    t.datetime "work_time", default: "2023-05-31 22:30:00"
     t.string "affiliation"
     t.integer "employee_number"
     t.string "uid"
-    t.datetime "designated_work_start_time", default: "2023-03-03 00:00:00"
-    t.datetime "designated_work_end_time", default: "2023-03-03 09:00:00"
+    t.datetime "designated_work_start_time", default: "2023-06-01 00:00:00"
+    t.datetime "designated_work_end_time", default: "2023-06-01 09:00:00"
     t.boolean "superior", default: false
     t.index ["email"], name: "index_users_on_email", unique: true
   end
