@@ -2,25 +2,26 @@ class AttendancesController < ApplicationController
   before_action :set_user, only: [:edit_one_month, :update_one_month, :update_manager_approval_request]
   before_action :set_user_id, only: [:update, :edit_overtime_request, :update_overtime_request, :edit_overtime_notice, :update_overtime_notice, 
                                     :edit_attendance_change_notice, :update_attendance_change_notice, :edit_manager_approval_notice, :update_manager_approval_notice, :attendance_log]
-  before_action :set_attendance, only: [:update, :edit_overtime_request, :update_overtime_request, :update_attendance_change_notice, :update_manager_approval_notice, :attendance_log]
+  before_action :set_attendance, only: [:update, :edit_overtime_request, :update_overtime_request]
   before_action :set_superior, only: [:edit_one_month, :edit_overtime_request]
   before_action :logged_in_user, only: [:update, :edit_one_month, :edit_overtime_request, :update_overtime_request, :edit_attendance_change_notice, :update_attendance_change_notice]
   before_action :correct_user, only: [:edit_one_month, :edit_overtime_request, :update_overtime_request, :edit_overtime_notice, :edit_attendance_change_notice]
   before_action :admin_or_correct_user, only: [:update, :edit_one_month, :update_one_month]
   before_action :set_one_month, only: [:edit_one_month, :update_one_month, :edit_overtime_request, :attendance_log]
+  before_action :not_admin, only: [:edit_one_month]
 
   UPDATE_ERROR_MSG = "勤怠登録に失敗しました。やり直してください。"
 
   def update
     # 出勤時間が未登録であることを判定します。
     if @attendance.started_at.nil?
-      if @attendance.update_attributes(started_at: Time.current.floor_to(15.minutes))
+      if @attendance.update_attributes(started_at: Time.current)
         flash[:info] = "おはようございます！"
       else
         flash[:danger] = UPDATE_ERROR_MSG
       end
     elsif @attendance.finished_at.nil?
-      if @attendance.update_attributes(finished_at: Time.current.floor_to(15.minutes))
+      if @attendance.update_attributes(finished_at: Time.current)
         flash[:info] = "お疲れ様でした。"
       else
         flash[:danger] = UPDATE_ERROR_MSG
@@ -88,7 +89,7 @@ class AttendancesController < ApplicationController
       @attendance.update(overtime_request_params)
       flash[:success] = "残業申請をしました"
     else
-       flash[:danger] = "残業申請が正しくありません"
+      flash[:danger] = "残業申請が正しくありません"
     end
     end
     redirect_to @user
@@ -96,7 +97,8 @@ class AttendancesController < ApplicationController
   
   # 残業申請のお知らせモーダルの表示
   def edit_overtime_notice
-    @attendances = Attendance.where(overtime_request_superior: @user.id, overtime_request_status: "申請中").order(:worked_on).group_by(&:user_id)
+    # @user.id→@user.nameに変更
+    @attendances = Attendance.where(overtime_request_superior: @user.name, overtime_request_status: "申請中").order(:worked_on).group_by(&:user_id)
   end
   
   # 残業申請のお知らせモーダル更新
@@ -115,40 +117,39 @@ class AttendancesController < ApplicationController
       else
         flash[:danger] = "残業申請の承認に失敗しました。" 
       end
-      redirect_to user_url(@user)
     end
+    redirect_to user_url(@user)
   end
   
   # 勤怠変更申請のお知らせモーダルの表示
+  # @user.id→@user.nameに変更
   def edit_attendance_change_notice
-    @attendances = Attendance.where(attendances_request_superior: @user.id, attendances_approval_status: "申請中").order(:worked_on).group_by(&:user_id)
+    @attendances = Attendance.where(attendances_request_superior: @user.name, attendances_approval_status: "申請中").order(:worked_on).group_by(&:user_id)
   end
   
   # 勤怠変更申請のモーダルの更新
   def update_attendance_change_notice
-     a_count = 0
-     attendance_change_notice_params.each do |id, item|
-      attendance = Attendance.find(id)
+    a_count = 0
+    attendance_change_notice_params.each do |id, item|
+    attendance = Attendance.find(id)
       if item[:attendances_approval_check] == "1"
-        unless item[:attendances_approval_status] == "申請中" || item[:attendances_approval_status] == "なし" 
-          if item[:attendances_approval_status] == "承認"
-            attendance.begin_started = attendance.started_at
-            attendance.begin_finished = attendance.finished_at
-            item[:started_at] = attendance.edit_started_at
-            item[:finished_at] = attendance.edit_finished_at
-          end
+        if item[:attendances_approval_status] == "申請中" || item[:attendances_approval_status] == "承認"
+          attendance.begin_started = attendance.started_at
+          attendance.begin_finished = attendance.finished_at
+          item[:started_at] = attendance.edit_started_at
+          item[:finished_at] = attendance.edit_finished_at
+        end
         a_count += 1
         attendance.update(item)
-        end
-        attendance.update(edit_started_at: nil, edit_finished_at: nil, note: nil, attendances_approval_status: nil, next_day: nil) if item[:attendances_approval_status] == "なし"
       end
-    end
-    if a_count > 0
-      flash[:success] = "勤怠変更の承認に成功しました。"
-    else
-      flash[:danger] = "勤怠変更の承認に失敗しました。"
-    end
-    redirect_to user_url(@user)
+      attendance.update(edit_started_at: nil, edit_finished_at: nil, note: nil, attendances_approval_status: nil, next_day: nil) if item[:attendances_approval_status] == "なし"
+  end
+  if a_count > 0
+    flash[:success] = "勤怠変更の承認に成功しました。"
+  else
+    flash[:danger] = "勤怠変更の承認に失敗しました。"
+  end
+  redirect_to user_url(@user)
   end
   
   # 1ヶ月分の勤怠申請 
@@ -170,35 +171,45 @@ class AttendancesController < ApplicationController
   end
   
   # 所属長承認お知らせモーダルの表示
+  # @user.id→@user.nameに変更
   def edit_manager_approval_notice
-    @attendances = Attendance.where(manager_request_superior: @user.id, manager_request_status: "申請中").order(:worked_on).group_by(&:user_id)
+    @attendances = Attendance.where(manager_request_superior: @user.name, manager_request_status: "申請中").order(:worked_on).group_by(&:user_id)
   end
   
   # 所属長承認お知らせモーダルの表示
   def update_manager_approval_notice
     manager_approval_notice_params.each do |id, item|
     attendance = Attendance.find(id)
-      if item[:manager_approval_check] == "1"
-        if item[:manager_approval_status] == "なし"
-          item[:manager_approval_status] = nil
-          item[:manager_approval_check] = nil
-        end 
+    if item[:manager_approval_check] == "1"
+      if ["承認", "否認"].include? item[:manager_approval_status]
         attendance.manager_request_status = nil
-        attendance.update(item)
-        flash[:success] = "所属長承認申請の結果を送信しました。"
-      else
-        flash[:danger] = "承認確認のチェックを入れてください。" 
       end
+      attendance.update(item)
+      flash[:success] = "所属長承認申請の結果を送信しました。"
+    else
+      flash[:danger] = "承認確認のチェックを入れてください。"
+    end
     end
     redirect_to user_url(@user)
   end
   
   # 勤怠修正ログ
   def attendance_log
-   if params["select_year(1i)"].present? && params["select_month(2i)"].present?
-      @first_day = (params["select_year(1i)"] + "-" + params["select_month(2i)"] + "-01").to_data
-      @attendances = @user.attendances.where(worked_on: @first_day..@first_day.end_of_month,attendances_approval_status: "承認").order(:worked_on)
-   end
+    # 修正前コード(ログを確認後、params内の"select_year(1i)"と"select_month(2i)"が存在しないことが原因で勤怠情報以外も出力できていた)
+    # if params["select_year(1i)"].present? && params["select_month(2i)"].present?
+    #   @first_day = (params["select_year(1i)"] + "-" + params["select_month(2i)"] + "-01").to_date
+    #   @attendances = @user.attendances.where(worked_on: @first_day..@first_day.end_of_month,attendances_approval_status: "承認").order(:worked_on)
+    # end
+    
+    if params["date"].present? && params["date"]["year"].present? && params["date"]["month"].present?
+      year = params["date"]["year"].to_i
+      month = params["date"]["month"].to_i
+      @first_day = Date.new(year, month, 1)
+    else
+      # 検索パラメーターが送信されていないときは、@first_dayに現在の月の最初の日を設定する
+      @first_day = Date.today.beginning_of_month
+    end
+      @attendances = @user.attendances.where(worked_on: @first_day..@first_day.end_of_month, attendances_approval_status: "承認").order(:worked_on)    
   end
   
   private
@@ -231,9 +242,9 @@ class AttendancesController < ApplicationController
     def manager_request_params
       params.require(:user).permit(attendances: [:manager_request_superior, :manager_request_status])[:attendances]
     end
+
     # 所属長承認
     def manager_approval_notice_params
       params.require(:user).permit(attendances: [:manager_approval_status, :manager_approval_check])[:attendances]
     end
-    
 end

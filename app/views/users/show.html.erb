@@ -3,9 +3,9 @@
   <table class="table table-bordered table-condensed user-table" id="table-attendances">
     <tr>
       <td>
-        <%= link_to "⇦", user_path(date: @first_day.prev_month), class: "btn btn-primary" %>
+        <%= link_to "⇦", user_path(id: @user.id, date: @first_day.prev_month), class: "btn btn-primary" %>
         <%= l(@first_day, format: :middle) %> 時間管理表  
-        <%= link_to "⇨", user_path(date: @first_day.next_month), class: "btn btn-primary" %>
+        <%= link_to "⇨", user_path(id: @user.id, date: @first_day.next_month), class: "btn btn-primary" %>
       </td>
       <td>
         指定勤務開始時間：<%= format_basic_info(@user.designated_work_start_time) %><br>
@@ -37,7 +37,7 @@
     <% end %>
     
     <% if @attendances_sum > 0 %>
-      <%= link_to "【  勤怠変更申請のお知らせ　】", edit_attendance_change_notice_user_attendance_path(@user), remote: true, class: "notice-color" %>
+      <%= link_to "【  勤怠変更申請のお知らせ 】", edit_attendance_change_notice_user_attendance_path(@user), remote: true, class: "notice-color" %>
       <span style="border: solid 3px red; color: red;"><%= link_to "#{@attendances_sum}件の通知があります", edit_attendance_change_notice_user_attendance_path(@user), remote: true, class: "notice-color" %></span><br>
     <% else %>
       <%= "【  勤怠変更申請のお知らせ 】" %><br>
@@ -163,22 +163,22 @@
         <td colspan="6"><%= format_basic_info(@user.work_time).to_f * @worked_sum %></td>
         <td colspan="4"><%= format("%.2f", @total_working_times.to_f) %></td>
         <td colspan="2">
-          <% if current_user?(@user) %>
-            <% day = @user.attendances.find_by(worked_on: @first_day) %>
-              <%= form_with(model: @user, url: attendances_update_manager_approval_request_user_path(@user), local: true, method: :patch) do |f| %>
-                <%= f.fields_for "attendances[]", day do |attendance| %>
-                  <%= "所属長承認: " %>
-                    <% if day.manager_approval_status.nil? && day.manager_request_status.nil? %>
-                      <%= "未" %><br>
-                    <% elsif day.manager_request_status == "申請中" %>
-                      <%= "#{day.manager_request_superior}へ#{day.manager_request_status}" %><br>
-                    <% elsif (day.manager_approval_status == "承認") || (day.manager_approval_status == "否認") %>
-                      <%= "#{day.manager_request_superior}より#{day.manager_approval_status}済" %><br>
-                    <% end %>
-                      <%= attendance.collection_select :manager_request_superior, @superiors, :id, :name, { include_blank: true }, required: true %>
+          <% if current_user?(@user) && (day = @user.attendances.find_by(worked_on: @first_day)) %>
+            <%= form_with(model: @user, url: attendances_update_manager_approval_request_user_path(@user), local: true, method: :patch) do |f| %>
+              <%= f.fields_for "attendances[]", day do |attendance| %>
+                <%= "所属長承認: " %>
+                  <% if day.manager_approval_status.nil? && day.manager_request_status.nil? %>
+                    <%= "未" %><br>
+                  <% elsif day.manager_request_status == "申請中" %>
+                    <%= "#{day.manager_request_superior}へ#{day.manager_request_status}" %><br>
+                  <% elsif (day.manager_approval_status == "承認") || (day.manager_approval_status == "否認") %>
+                    <%= "#{day.manager_request_superior}より#{day.manager_approval_status}済" %><br>
                   <% end %>
-                    <%= f.submit "申請", class: "btn btn-primary" %>
-                <% end %>
+                  <!--:name, :nameに変更-->
+                    <%= attendance.collection_select :manager_request_superior, @superiors, :name, :name, { include_blank: true }, required: true %>
+              <% end %>
+                  <%= f.submit "申請", class: "btn btn-primary" %>
+            <% end %>
           <% end %>
         </td>
       </tr>

@@ -1,4 +1,4 @@
-<% provide(:btn_text, '変更を返信する') %>
+<% provide(:btn_text, '変更を送信する') %>
 
 <div class="modal-dialog modal-lg modal-dialog-center">
   <div class="modal-content">
@@ -13,8 +13,9 @@
           <%= form_with(model: @user, url: update_overtime_notice_user_attendance_path(@user), local: true, method: :patch) do |f| %>
             <% @attendances.each do |id, attendances| %>
               <% user = User.find(id) %>
-              <h1 class="modal-title"><%= "【#{user.id}からの残業申請】" %></h1>
-               <table class="table table-bordered table-condensed table-hover" id="table-attendances">
+              <!--user.id→user.nameに変更-->
+              <h1 class="modal-title"><%= "【#{user.name}からの残業申請】" %></h1>
+              <table class="table table-bordered table-condensed table-hover" id="table-attendances">
                 <thead>
                   <tr>
                     <th rowspan="2">日付</th>

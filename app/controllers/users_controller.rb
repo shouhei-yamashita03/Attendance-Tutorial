@@ -6,7 +6,6 @@ class UsersController < ApplicationController
   before_action :admin_user, only: [:index, :destroy, :edit_basic_info, :update_basic_info, :list_of_commuting_employees]
   before_action :set_one_month, only: [:show, :show_confirmation]
   before_action :not_admin, only: [:show]
- 
   
   def index
     @users = User.paginate(page: params[:page])
@@ -15,10 +14,21 @@ class UsersController < ApplicationController
 
   # before_actionでまとめられないものがある。
   def show
+    # @first_dayから@last_dayまでの範囲をworked_onの範囲として指定して、その範囲内の勤怠記録を検索
+    # @first_dayと@last_dayはそれぞれ、選択された月の最初の日と最終の日を指すように設定
+    @first_day = params[:date].nil? ? Date.today.beginning_of_month : Date.parse(params[:date])
+    @last_day = @first_day.end_of_month
+    # @user.idを持つユーザーのAttendanceレコードをworked_onの日付が@first_dayから@last_dayの範囲内にあるものだけを検索
+    @attendances = Attendance.where(user_id: @user.id, worked_on: @first_day..@last_day)
+
+    # idを指定すればid(1,2,3),nameを指定すれば名前を表示させる
+    # @overtime_sum @user.id→@user.nameに変更
+    # @attendances_sum @user.id→@user.nameに変更
+    # @manager_sum @user.id→@user.nameに変更
     @worked_sum = @attendances.where.not(started_at: nil).count
-    @overtime_sum = Attendance.where(overtime_request_superior: @user.id, overtime_request_status: "申請中").count
-    @attendances_sum = Attendance.where(attendances_request_superior: @user.id, attendances_approval_status: "申請中").count
-    @manager_sum = Attendance.where(manager_request_superior: @user.id, manager_request_status: "申請中").count
+    @overtime_sum = Attendance.where(overtime_request_superior: @user.name, overtime_request_status: "申請中").count
+    @attendances_sum = Attendance.where(attendances_request_superior: @user.name, attendances_approval_status: "申請中").count
+    @manager_sum = Attendance.where(manager_request_superior: @user.name, manager_request_status: "申請中").count
     # csv出力
     require 'csv'
     
@@ -31,10 +41,15 @@ class UsersController < ApplicationController
   end
   
   def show_confirmation
+    # @overtime_sum @user.id→@user.nameに変更
+    # @attendances_sum @user.id→@user.nameに変更
+    # @manager_sum @user.id→@user.nameに変更
+    # @user.idを持つユーザーのAttendanceレコードをworked_onの日付が@first_dayから@last_dayの範囲内にあるものだけを検索
+    @attendances = Attendance.where(user_id: @user.id, worked_on: @first_day..@last_day)
     @worked_sum = @attendances.where.not(started_at: nil).count
-    @overtime_sum = Attendance.where(overtime_request_superior: @user.id, overtime_request_status: "申請中").count
-    @attendances_sum = Attendance.where(attendances_request_superior: @user.id, attendances_approval_status: "申請中").count
-    @manager_sum = Attendance.where(manager_request_superior: @user.id, manager_request_status: "申請中").count
+    @overtime_sum = Attendance.where(overtime_request_superior: @user.name, overtime_request_status: "申請中").count
+    @attendances_sum = Attendance.where(attendances_request_superior: @user.name, attendances_approval_status: "申請中").count
+    @manager_sum = Attendance.where(manager_request_superior: @user.name, manager_request_status: "申請中").count
   end
   
   def new

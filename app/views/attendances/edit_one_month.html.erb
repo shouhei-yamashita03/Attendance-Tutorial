@@ -35,7 +35,8 @@
               <% end %>
               </td>
               <td><%= attendance.text_field :note, class: "form-control" %></td>
-              <td><%= attendance.collection_select( :attendances_request_superior, @superiors, :id, :name, {prompt: ""}) %></td>
+              <!--:id, :name→:name, :name,に変更-->
+              <td><%= attendance.collection_select( :attendances_request_superior, @superiors, :name, :name, {prompt: ""}) %></td>
           </tr>
           <% end %>
         <% end %>

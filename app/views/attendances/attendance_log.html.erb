@@ -4,12 +4,10 @@
     <h1>勤怠修正ログ</h1>
         <%= form_with(url: attendance_log_user_attendance_path, local: true, method: :get) do |f| %>
             <div class="pull-left">
-                <!--f.submit "リセット"を使用する場合、type::resetを付ける-->
-                <%= f.submit "リセット", type: :reset %><br>
                 <%= f.label "年" %>
-                <%= select_year(Date.today, start_year: Date.today.year, end_year: Date.today.year + 10, prompt: '') %>
+                <%= select_year(Date.today, start_year: Date.today.year, end_year: Date.today.year + 10, prompt: "年を選択してください", name: "date[year]") %>
                 <%= f.label "月" %>
-                <%= select_month(Date.today, prompt: '') %><br>
+                <%= select_month(Date.today, prompt: "月を選択してください", name: "date[month]") %><br>
                 <%= f.submit "　検索　" %>
             </div>
         <% end %>

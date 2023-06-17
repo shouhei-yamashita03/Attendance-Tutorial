@@ -10,7 +10,7 @@
       <h1 class="modal-title">拠点情報編集</h1>
     </div>
     <div class="modal-body">
-      <%= form_with(model: @base, url: bases_path(@base), local: true) do |f| %>
+      <%= form_with(model: @base, url: basis_path(@base), local: true, method: :patch) do |f| %>
       
         <%= f.label :"拠点番号", class: "label-#{yield(:class_text)}" %>
         <%= f.number_field :base_number, class: "form-control", min: 1, max: 50 %>

@@ -1,5 +1,6 @@
 <% provide(:class_text, 'overtime-request') %>
-<% provide(:btn_text, '変更を返信する') %>
+<!--返信→送信に変更-->
+<% provide(:btn_text, '変更を送信する') %>
 
 <div class="modal-dialog modal-lg modal-dialog-center">
   <div class="modal-content">
@@ -13,7 +14,7 @@
       <div class="row">
         <div class="col-md-12">
           <%= form_with(model: @attendance, url: update_overtime_request_user_attendance_path(@user, @attendance), local: true, method: :patch) do |f| %>
-               <table class="table table-bordered table-condensed table-hover" id="table-attendances">
+          <table class="table table-bordered table-condensed table-hover" id="table-attendances">
                 <thead>
                   <tr>
                     <th>日付</th>
@@ -33,7 +34,8 @@
                     <td><%= f.text_field :work_description, class: 'form-control' %></td>
                     <!--:name, :nameだと名前が出力される-->
                     <!--:id, :nameであればuserのidが表示される。-->
-                    <td><%= f.collection_select( :overtime_request_superior, @superiors, :id, :name, {prompt: ""}) %></td>
+                    <!--:name, :nameに変更-->
+                    <td><%= f.collection_select( :overtime_request_superior, @superiors, :name, :name, {prompt: ""}) %></td>
                   </tr>
                 </tbody>
               </table>
