@@ -15,7 +15,7 @@ class UsersController < ApplicationController
   # before_actionでまとめられないものがある。
   def show
     # @first_dayから@last_dayまでの範囲をworked_onの範囲として指定して、その範囲内の勤怠記録を検索
-    # @first_dayと@last_dayはそれぞれ、選択された月の最初の日と最終の日を指すように設定
+    # @first_dayと@last_dayはそれぞれ、選択された月の最初の日と最終の日を指すように設定する
     @first_day = params[:date].nil? ? Date.today.beginning_of_month : Date.parse(params[:date])
     @last_day = @first_day.end_of_month
     # @user.idを持つユーザーのAttendanceレコードをworked_onの日付が@first_dayから@last_dayの範囲内にあるものだけを検索
