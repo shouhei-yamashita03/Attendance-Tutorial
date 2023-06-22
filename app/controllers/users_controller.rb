@@ -9,17 +9,16 @@ class UsersController < ApplicationController
   
   def index
     @users = User.paginate(page: params[:page])
-    # @users = @users.where('name like ?', "%#{params[:search]}%") if params[:search].present?
   end
 
   # before_actionでまとめられないものがある。
   def show
     # @first_dayから@last_dayまでの範囲をworked_onの範囲として指定して、その範囲内の勤怠記録を検索
     # @first_dayと@last_dayはそれぞれ、選択された月の最初の日と最終の日を指すように設定する
-    @first_day = params[:date].nil? ? Date.today.beginning_of_month : Date.parse(params[:date])
-    @last_day = @first_day.end_of_month
+    # @first_day = params[:date].nil? ? Date.today.beginning_of_month : Date.parse(params[:date])
+    # @last_day = @first_day.end_of_month
     # @user.idを持つユーザーのAttendanceレコードをworked_onの日付が@first_dayから@last_dayの範囲内にあるものだけを検索
-    @attendances = Attendance.where(user_id: @user.id, worked_on: @first_day..@last_day)
+    # @attendances = Attendance.where(user_id: @user.id, worked_on: @first_day..@last_day)
 
     # idを指定すればid(1,2,3),nameを指定すれば名前を表示させる
     # @overtime_sum @user.id→@user.nameに変更
@@ -129,8 +128,9 @@ class UsersController < ApplicationController
     end
     
     def send_attendances_csv(attendances)
-      # row_sep: "\r\n"→CSVファイルにおいて行を区切る時に使用　encoding:Encoding::CP932→Windowsで使用されるShift_Jisの一種
-      csv_data = CSV.generate(row_sep: "\r\n", encoding:Encoding::CP932) do |csv|
+      bom = "\uFEFF"
+      
+      csv_data = CSV.generate(bom, encoding: Encoding::SJIS, row_sep: "\r\n", force_quotes: true) do |csv|
         header = %w(日付 出社時間 退社時間)
         csv << header
         
@@ -155,5 +155,4 @@ class UsersController < ApplicationController
       # csv出力のファイル名を定義します。
       send_data(csv_data, filename: "勤怠一覧.csv")
     end
-
 end

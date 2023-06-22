@@ -48,7 +48,7 @@ class AttendancesController < ApplicationController
             flash[:danger] = "退勤時間が必要です。"
             redirect_to attendances_edit_one_month_user_url(date: params[:date])
             return
-          elsif item[:edit_started_at].present? && item[:edit_finished_at].present? && item[:edit_started_at].to_s > item[:edit_finished_at].to_s
+          elsif item[:edit_started_at].present? && item[:edit_finished_at].present? && item[:edit_started_at].to_s > item[:edit_finished_at].to_s && item[:next_day] == "0"
             flash[:danger] = "時刻に誤りがあります。"
             redirect_to attendances_edit_one_month_user_url(date: params[:date])
             return
@@ -149,7 +149,7 @@ class AttendancesController < ApplicationController
   else
     flash[:danger] = "勤怠変更の承認に失敗しました。"
   end
-  redirect_to user_url(@user)
+    redirect_to user_url(@user)
   end
   
   # 1ヶ月分の勤怠申請 
@@ -195,21 +195,15 @@ class AttendancesController < ApplicationController
   
   # 勤怠修正ログ
   def attendance_log
-    # 修正前コード(ログを確認後、params内の"select_year(1i)"と"select_month(2i)"が存在しないことが原因で勤怠情報以外も出力できていた)
-    # if params["select_year(1i)"].present? && params["select_month(2i)"].present?
-    #   @first_day = (params["select_year(1i)"] + "-" + params["select_month(2i)"] + "-01").to_date
-    #   @attendances = @user.attendances.where(worked_on: @first_day..@first_day.end_of_month,attendances_approval_status: "承認").order(:worked_on)
-    # end
-    
-    if params["date"].present? && params["date"]["year"].present? && params["date"]["month"].present?
-      year = params["date"]["year"].to_i
-      month = params["date"]["month"].to_i
-      @first_day = Date.new(year, month, 1)
-    else
-      # 検索パラメーターが送信されていないときは、@first_dayに現在の月の最初の日を設定する
-      @first_day = Date.today.beginning_of_month
+    if Attendance.where(manager_approval_status: "承認").order(:worked_on).group_by(&:user_id)
+      if params["select_year(1i)"].nil?
+        @first_day = Date.current.beginning_of_month
+      else
+        @first_day = Date.parse("#{params["select_year(1i)"]}/#{params["select_month(2i)"]}/1")
+      end
+      last_day = @first_day.end_of_month
+      @attendances = @user.attendances.where(worked_on: @first_day..last_day, attendances_approval_status: "承認").order(:worked_on)
     end
-      @attendances = @user.attendances.where(worked_on: @first_day..@first_day.end_of_month, attendances_approval_status: "承認").order(:worked_on)    
   end
   
   private

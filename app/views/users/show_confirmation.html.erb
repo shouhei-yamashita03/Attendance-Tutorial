@@ -115,23 +115,37 @@
 <tfoot>
   <!--rowspan:縦結合、colspan：横結合-->
   <tr>
-    <td></td>
-      <td>累計日数</td>
-      <td colspan="6">総合勤務時間</td>
-      <td colspan="1">累計在社時間</td>
-      <td rowspan="2"></td>
-      <td rowspan="2"></td>
-      <td rowspan="2"></td>
-      <td rowspan="2"></td>
-      <td rowspan="2"></td>
-      <td rowspan="2"></td>
-  </tr>
-  <tr>
-    <td></td>
-    <td><%= @attendances.count %></td>
-    <td colspan="6"><%= format_basic_info(@user.work_time).to_f * @worked_sum %></td>
-    <td colspan="1"><%= format("%.2f", @total_working_times.to_f) %></td>
-  </tr>
+        <td></td>
+        <td colspan="2">累計日数</td>
+        <td colspan="6">総合勤務時間</td>
+        <td colspan="4">累計在社時間</td>
+        <td colspan="2"></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td colspan="2"><%= @attendances.count %></td>
+        <td colspan="6"><%= format_basic_info(@user.work_time).to_f * @worked_sum %></td>
+        <td colspan="4"><%= format("%.2f", @total_working_times.to_f) %></td>
+        <td colspan="2">
+          <% if current_user?(@user) && (day = @user.attendances.find_by(worked_on: @first_day)) %>
+            <%= form_with(model: @user, url: attendances_update_manager_approval_request_user_path(@user), local: true, method: :patch) do |f| %>
+              <%= f.fields_for "attendances[]", day do |attendance| %>
+                <%= "所属長承認: " %>
+                  <% if day.manager_approval_status.nil? && day.manager_request_status.nil? %>
+                    <%= "未" %><br>
+                  <% elsif day.manager_request_status == "申請中" %>
+                    <%= "#{day.manager_request_superior}へ#{day.manager_request_status}" %><br>
+                  <% elsif (day.manager_approval_status == "承認") || (day.manager_approval_status == "否認") %>
+                    <%= "#{day.manager_request_superior}より#{day.manager_approval_status}済" %><br>
+                  <% end %>
+                  <!--:name, :nameに変更-->
+                    <%= attendance.collection_select :manager_request_superior, @superiors, :name, :name, { include_blank: true }, required: true %>
+              <% end %>
+                  
+            <% end %>
+          <% end %>
+        </td>
+      </tr>
 </tfoot>   
 </table>
 </div>
